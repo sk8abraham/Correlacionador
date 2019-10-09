@@ -20,7 +20,7 @@ if [ $? -eq 0 ]; then
 	cp -r owasp-modsecurity-crs/crs-setup.conf.example /etc/modsecurity/crs/crs-setup.conf
 	rm -rf owasp-modsecurity-crs
 	cp -r archivos/security2.conf /etc/apache2/mods-enabled/security2.conf
-	cat /etc/apache2/sites-enabled/000-default.conf | sed '/</VirtualHost>/ i\SecRuleEngine On'
+	cat /etc/apache2/sites-enabled/000-default.conf | sed '/<\/VirtualHost>\/ i\SecRuleEngine On'
 	systemctl restart apache2
 	
 fi
