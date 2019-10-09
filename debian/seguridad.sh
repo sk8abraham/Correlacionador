@@ -12,12 +12,15 @@ echo -e "#################################################"
 echo -e "###########   Instalando mod-security   #########\n"
 apt install -y libapache2-mod-security2
 if [ $? -eq 0 ]; then
-	echo -e "####### Configurando modsecurity ########"
+	echo -e "####### Configurando modsecurity ########'\n"
 	a2enmod security2
-	sudo cp /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf
-	
-
-
+	#systemctl restart apache2
+	git clone https://github.com/SpiderLabs/owasp-modsecurity-crs.git
+	cp -r owasp-modsecurity-crs/rules /etc/modsecurity/
+	cp -r owasp-modsecurity-crs/crs-setup.conf.example /etc/modsecurity/crs/crs-setup.conf
+	rm -rf owasp-modsecurity-crs
+	cp -r archivos/security2.conf /etc/apache2/mods-enabled/security2.conf
+	systemctl restart apache2
 	
 fi
 
