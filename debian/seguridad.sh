@@ -31,7 +31,7 @@ echo -e "#################################################\n\n"
 
 echo -e "#################################################"
 echo -e "#########   Instalando libpam  ##############\n"
-apt install -y install libpam-pwquality cracklib-runtime
+apt install -y libpam-pwquality cracklib-runtime
 cp archivos/common-password /etc/pam.d/common-password
 echo -e "#################################################\n\n"
 
