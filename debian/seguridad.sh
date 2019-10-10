@@ -14,7 +14,7 @@ apt install -y libapache2-mod-security2
 
 if [ $? -eq 0 ]; then
 	echo -e "####### Configurando modsecurity ########'\n"
-	a2enmod security2
+	sudo 2enmod security2
 	#systemctl restart apache2
 	git clone https://github.com/SpiderLabs/owasp-modsecurity-crs.git
 	cp -r owasp-modsecurity-crs/rules /etc/modsecurity/
