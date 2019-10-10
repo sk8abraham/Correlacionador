@@ -11,6 +11,7 @@ echo -e "#################################################\n\n"
 echo -e "#################################################"
 echo -e "###########   Instalando mod-security   #########\n"
 apt install -y libapache2-mod-security2
+
 if [ $? -eq 0 ]; then
 	echo -e "####### Configurando modsecurity ########'\n"
 	a2enmod security2
@@ -23,18 +24,17 @@ if [ $? -eq 0 ]; then
 	cat /etc/apache2/sites-enabled/000-default.conf | sed '/<\/VirtualHost>/ i\SecRuleEngine On' > tmp.txt
 	cat tmp.txt > /etc/apache2/sites-enabled/000-default.conf
 	rm -rf tmp.txt
+	echo "Reiniciando apache"
 	systemctl restart apache2
-	
 fi
-
-: '
 echo -e "#################################################\n\n"
 
 echo -e "#################################################"
 echo -e "#########   Instalando libpam  ##############\n"
-apt install -y 
+apt install -y install libpam-pwquality cracklib-runtime
 echo -e "#################################################\n\n"
 
+: '
 echo -e "#################################################"
 echo -e "########   Instalando ProFTP    #################\n"
 apt install -y proftpd
