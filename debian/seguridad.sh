@@ -49,7 +49,7 @@ echo -e "\n\nlocal\n\nn\n\n\n\n\n\n\n" | ./install.sh
 sudo var/ossec/bin/ossec-control start
 echo -e "#################################################\n\n"
 
-:'
+: '
 echo -e "#################################################"
 echo -e "##########    Instalando SSH    #################\n"
 apt install -y openssh-server
