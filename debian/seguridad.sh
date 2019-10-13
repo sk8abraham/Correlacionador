@@ -46,7 +46,7 @@ tar zxf pcre2-10.32.tar.gz -C /tmp/ossec-hids-3.3.0/src/external/
 cd /tmp/ossec-hids-3.3.0/
 cd /tmp/ossec-hids-3.3.0/
 echo -e "\n\nlocal\n\nn\n\n\n\n\n\n\n" | ./install.sh
-sudo var/ossec/bin/ossec-control start
+sudo /var/ossec/bin/ossec-control start
 sudo rm -rf 3.3.0.tar.gz pcre2-10.32.tar.gz
 
 echo -e "#################################################\n\n"
