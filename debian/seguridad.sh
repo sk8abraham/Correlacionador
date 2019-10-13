@@ -51,9 +51,19 @@ sudo rm 3.3.0.tar.gz pcre2-10.32.tar.gz
 
 echo -e "#################################################\n\n"
 
-: '
+
 echo -e "#################################################"
-echo -e "##########    Instalando SSH    #################\n"
-apt install -y openssh-server
+echo -e "##########    Instalando Fail2ban    ############\n"
+apt install -y fail2ban
+cp /etc/fail2ban/fail2ban.conf /etc/fail2ban/fail2ban.local
 echo -e "#################################################\n\n"
-'
+
+echo -e "#################################################"
+echo -e "##########    Instalando Logwatch    ############\n"
+apt install -y logwatch
+echo -e "#################################################\n\n"
+
+echo -e "#################################################"
+echo -e "##########    Instalando Logcheck    ############\n"
+apt install -y logcheck
+echo -e "#################################################\n\n"
