@@ -45,9 +45,10 @@ wget https://ftp.pcre.org/pub/pcre/pcre2-10.32.tar.gz
 tar zxf pcre2-10.32.tar.gz -C /tmp/ossec-hids-3.3.0/src/external/
 cd /tmp/ossec-hids-3.3.0/
 cd /tmp/ossec-hids-3.3.0/
-./install.sh
-
+echo -e "\n\nlocal\n\nn\n\n\n\n\n\n\n" | ./install.sh
+sudo var/ossec/bin/ossec-control start
 echo -e "#################################################\n\n"
+
 :'
 echo -e "#################################################"
 echo -e "##########    Instalando SSH    #################\n"
