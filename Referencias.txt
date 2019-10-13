@@ -1,7 +1,8 @@
 https://phoenixnap.com/kb/setup-configure-modsecurity-on-apache
-
 https://gist.github.com/cedricwalter/1690823
-
 https://kifarunix.com/install-ossec-agent-on-debian-10-buster/
-
 https://computingforgeeks.com/enforce-strong-user-password-policy-ubuntu-debian/
+
+https://www.linode.com/docs/security/using-fail2ban-for-security/
+https://www.techrepublic.com/article/how-to-install-and-use-logwatch-on-linux/
+https://www.ictforce.be/2018/linux-security-logcheck/
