@@ -4,6 +4,4 @@ https://gist.github.com/cedricwalter/1690823
 
 https://kifarunix.com/install-ossec-agent-on-debian-10-buster/
 
-https://kifarunix.com/install-ossec-agent-on-debian-10-buster/
-
 https://computingforgeeks.com/enforce-strong-user-password-policy-ubuntu-debian/
