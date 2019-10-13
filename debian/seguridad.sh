@@ -35,12 +35,20 @@ apt install -y libpam-pwquality cracklib-runtime
 cp archivos/common-password /etc/pam.d/common-password
 echo -e "#################################################\n\n"
 
-: '
-echo -e "#################################################"
-echo -e "########   Instalando ProFTP    #################\n"
-apt install -y proftpd
-echo -e "#################################################\n\n"
 
+echo -e "#################################################"
+echo -e "########   Instalando OSSEC IDS    ##############\n"
+apt install inotify-tools gcc zlib1g-dev
+wget https://github.com/ossec/ossec-hids/archive/3.3.0.tar.gz
+tar xzf 3.3.0.tar.gz -C /tmp/
+wget https://ftp.pcre.org/pub/pcre/pcre2-10.32.tar.gz
+tar zxf pcre2-10.32.tar.gz -C /tmp/ossec-hids-3.3.0/src/external/
+cd /tmp/ossec-hids-3.3.0/
+cd /tmp/ossec-hids-3.3.0/
+./install.sh
+
+echo -e "#################################################\n\n"
+:'
 echo -e "#################################################"
 echo -e "##########    Instalando SSH    #################\n"
 apt install -y openssh-server
