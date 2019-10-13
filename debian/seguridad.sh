@@ -38,7 +38,7 @@ echo -e "#################################################\n\n"
 
 echo -e "#################################################"
 echo -e "########   Instalando OSSEC IDS    ##############\n"
-apt install inotify-tools gcc zlib1g-dev
+apt install -y inotify-tools gcc zlib1g-dev build-essential
 wget https://github.com/ossec/ossec-hids/archive/3.3.0.tar.gz
 tar xzf 3.3.0.tar.gz -C /tmp/
 wget https://ftp.pcre.org/pub/pcre/pcre2-10.32.tar.gz
