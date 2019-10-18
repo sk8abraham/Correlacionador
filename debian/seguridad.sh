@@ -14,7 +14,7 @@ apt install -y libapache2-mod-security2
 
 if [ $? -eq 0 ]; then
 	echo -e "####### Configurando modsecurity ########'\n"
-	sudo 2enmod security2
+	2enmod security2
 	#systemctl restart apache2
 	git clone https://github.com/SpiderLabs/owasp-modsecurity-crs.git
 	cp -r owasp-modsecurity-crs/rules /etc/modsecurity/
@@ -45,9 +45,9 @@ wget https://ftp.pcre.org/pub/pcre/pcre2-10.32.tar.gz
 tar zxf pcre2-10.32.tar.gz -C /tmp/ossec-hids-3.3.0/src/external/
 cd /tmp/ossec-hids-3.3.0/
 echo -e "\n\nlocal\n\nn\n\n\n\n\n\n\n" | ./install.sh
-sudo /var/ossec/bin/ossec-control start
+/var/ossec/bin/ossec-control start
 cd -
-sudo rm 3.3.0.tar.gz pcre2-10.32.tar.gz
+rm 3.3.0.tar.gz pcre2-10.32.tar.gz
 
 echo -e "#################################################\n\n"
 
