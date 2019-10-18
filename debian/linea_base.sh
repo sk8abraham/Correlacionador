@@ -1,3 +1,3 @@
 #!/bin/bash
-sudo bash servicios.sh
-sudo bash seguridad.sh
+./servicios.sh
+./seguridad.sh
