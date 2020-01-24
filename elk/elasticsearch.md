@@ -79,20 +79,13 @@ cluster.initial_master_nodes: ["elasticsearch01", "elasticsearch02"]
 
 ### `Guia de Consultas para el Cluster`
 
-curl -XGET "http://172.16.100.1:9200"
-
-curl -XGET "http://172.16.100.1:9200/_cluster/health?pretty"
-
-curl -X GET "http://172.16.100.1:9200/_nodes/process?pretty"
-
-curl -X GET "http://172.16.100.1:9200/_nodes/_all/process?pretty"
-
-curl -X GET "http://172.16.100.1:9200/_nodes/nodeId1,nodeId2/jvm,process?pretty"
-
-curl -X GET "http://172.16.100.1:9200/_nodes/nodeId1,nodeId2/info/jvm,process?pretty"
-
-curl -X GET "http://172.16.100.1:9200/_nodes/nodeId1,nodeId2/_all?pretty"
-
+curl -XGET "http://172.16.100.1:9200"    
+curl -XGET "http://172.16.100.1:9200/_cluster/health?pretty"  
+curl -X GET "http://172.16.100.1:9200/_nodes/process?pretty"  
+curl -X GET "http://172.16.100.1:9200/_nodes/_all/process?pretty"  
+curl -X GET "http://172.16.100.1:9200/_nodes/nodeId1,nodeId2/jvm,process?pretty"   
+curl -X GET "http://172.16.100.1:9200/_nodes/nodeId1,nodeId2/info/jvm,process?pretty"  
+curl -X GET "http://172.16.100.1:9200/_nodes/nodeId1,nodeId2/_all?pretty"  
 curl -X PUT "http://172.16.100.1:9200/customer/_doc/1?pretty" -H 'Content-Type: application/json' -d'
 {
   "name": "John Doe"
