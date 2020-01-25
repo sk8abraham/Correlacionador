@@ -77,6 +77,74 @@ discovery.seed_hosts: ["172.16.100.1", "172.16.100.2"]
 cluster.initial_master_nodes: ["elasticsearch01", "elasticsearch02"]
 ```
 
+## X-Pack
+
+/usr/share/elasticsearch/bin/elasticsearch-plugin install x-pack
+
+*** En la versión actual de elasticsearch el modulo de x-pack viene instalado por defecto
+
+/usr/share/elasticsearch/bin/elasticsearch-syskeygen
+
+Storing generated key in [/etc/elasticsearch/system_key]...
+
+Copiar dicha clave a todos los nodos de elastic, en este caso a la ruta /etc/elasticsearch/
+
+```apacheconf
+Please enter the desired output file [certificate-bundle.zip]: 
+Enter instance name: elasticsearch01
+Enter name for directories and files [elasticsearch01]: 
+Enter IP Addresses for instance (comma-separated if more than one) []: 172.16.100.1
+Enter DNS names for instance (comma-separated if more than one) []: elasticsearch01.becarios.local
+Would you like to specify another instance? Press 'y' to continue entering instance information: y
+Enter instance name: elasticsearch02
+Enter name for directories and files [elasticsearch02]: 
+Enter IP Addresses for instance (comma-separated if more than one) []: 172.16.100.2
+Enter DNS names for instance (comma-separated if more than one) []: elasticsearch02.becarios.local
+Would you like to specify another instance? Press 'y' to continue entering instance information: y
+Enter instance name: elasticsearch03
+Enter name for directories and files [elasticsearch03]: 
+Enter IP Addresses for instance (comma-separated if more than one) []: 172.16.100.5
+Enter DNS names for instance (comma-separated if more than one) []: elasticsearch03.becarios.local
+Would you like to specify another instance? Press 'y' to continue entering instance information: n
+Certificates written to /usr/share/elasticsearch/certificate-bundle.zip
+
+This file should be properly secured as it contains the private keys for all
+instances and the certificate authority.
+
+After unzipping the file, there will be a directory for each instance containing
+the certificate and private key. Copy the certificate, key, and CA certificate
+to the configuration directory of the Elastic product that they will be used for
+and follow the SSL configuration instructions in the product guide.
+
+For client applications, you may only need to copy the CA certificate and
+configure the client to trust this certificate.
+```
+
+Una vez que se generan las llaves de la ca y de cada uno de los servers de elasticsearch se debe colocar el certificado de la ca y la llave
+y certificado de cada servidor en donde corresponde, para esto se creó una nueva carpeta en /etc/elasticsearch/certs y en cada uno de los 
+servidores debemos tener una estructura como la siguiente: 
+
+```apacheconf
+/etc/elasticsearch/certs/
+  ├── ca.crt
+  ├── elasticsearch01.crt
+  └── elasticsearch01.key
+```
+
+Ademas se deben añadir las lineas correspondientes a elasticsearch.yml para habilitar el modulo de seguridad, la autenticación en los servidores y 
+las comunicaciones cifradas en todo el cluster, para esto necesitamos añadir estas lineas en el archivo elasticsearch.yml
+
+https://www.elastic.co/guide/en/elasticsearch/reference/7.x/ssl-tls.html
+
+```apacheconf
+xpack.security.audit.enabled: true
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.verification_mode: certificate
+xpack.security.transport.ssl.key: /etc/elasticsearch/certs/elasticsearch01.key
+xpack.security.transport.ssl.certificate: /etc/elasticsearch/certs/elasticsearch01.crt
+xpack.security.transport.ssl.certificate_authorities: [ "/etc/elasticsearch/certs/ca.crt" ]
+```
+
 ### `Guia de Consultas para el Cluster`
 
 curl -XGET "http://172.16.100.1:9200"    

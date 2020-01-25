@@ -24,3 +24,7 @@ server.name: "kibana01"
 elasticsearch.hosts: ["http://172.16.100.1:9200", "http://172.16.100.2:9200"]
 kibana.index: ".kibana"
 ```
+
+## Configuración X-Pack
+
+/usr/share/logstash/bin/kibana-plugin install x-pack

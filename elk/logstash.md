@@ -45,3 +45,7 @@ Para probar que logstash este funcionando se puede ejecutar el siguiente comando
 ```apacheconf
 /usr/share/logstash/bin/logstash -e 'input { stdin {} } output { stdout {} }
 ```
+
+## Configuración X-Pack
+
+/usr/share/logstash/bin/logstash-plugin install x-pack
