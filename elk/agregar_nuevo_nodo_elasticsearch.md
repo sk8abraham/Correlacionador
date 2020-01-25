@@ -38,12 +38,13 @@ xpack.security.http.ssl.keystore.path: /etc/elasticsearch/certs/elasticsearch03.
 xpack.security.http.ssl.truststore.path: /etc/elasticsearch/certs/elasticsearch03.p12
 ```
 
-#### Comentar linea en los otros nodos
+#### Comentar linea en los otros nodos y añadir ip de nuevo nodo
 
-La siguiente línea debera ser comentada en los arhivos de configuracion de todos los servidores del cluster ya que solo se utiliza en una instalación totalmente nueva de un cluster, en este caso como el cluster ya esta en funcionamiento y solo se esta añadiendo un nuevo nodo no hace falta.
+La siguiente línea debera ser comentada en los arhivos de configuracion de todos los servidores del cluster ya que solo se utiliza en una instalación totalmente nueva de un cluster, en este caso como el cluster ya esta en funcionamiento y solo se esta añadiendo un nuevo nodo no hace falta. Ademas se debera indicar la ip del nuevo nodo para que los nodos puedan identificarse entre si en la red.
 
 ```apacheconf
 #cluster.initial_master_nodes: ["elasticsearch01", "elasticsearch02"]
+discovery.seed_hosts: ["172.16.100.1", "172.16.100.2", "172.16.100.5"]
 ```
 
 #### Añadir el Nuevo Nodo a Kibana
