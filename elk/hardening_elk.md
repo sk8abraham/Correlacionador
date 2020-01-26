@@ -188,6 +188,9 @@ elasticsearch.ssl.certificateAuthorities: [ "/etc/kibana/certs/ca.pem" ]
 ## Referencias
 
 https://www.elastic.co/guide/en/x-pack/6.2/ssl-tls.html
+
 https://www.elastic.co/guide/en/kibana/7.5/security-settings-kb.html
+
 https://www.elastic.co/guide/en/elasticsearch/reference/7.x/certutil.html
+
 https://arnaudloos.com/2019/enable-x-pack-security/
