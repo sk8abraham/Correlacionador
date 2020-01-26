@@ -56,3 +56,7 @@ elasticsearch.hosts: ["https://172.16.100.1:9200", "https://172.16.100.2:9200", 
 ```
 
 Una vez realizado todo lo anterior se deberan reiniciar todos los nodos del cluster así como el servidor kibana.
+
+#### Problemas con Sincronizacion de los Nodos
+
+Al momento de agregarse un nuevo nodo al cluster debemos asegurarnos que la version de elasticsearch de este sea la misma que la de los demas nodos ya que de no ser así se generaran problemas al momento de indexar la información, en este caso el nuevo nodo tenía elastic 7.5.2 y los otros nodos tenían elastic 7.5.1 por lo que se tuvieron que actualizar para que funcionran bien.
