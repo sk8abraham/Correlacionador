@@ -38,7 +38,7 @@ for SERVICIO in $SERVICIOS_POR_DEFECTO; do
 			break
 		fi
 		done
-	if [[ $FLG == 1 ]]; then
+	if [[ $FLG eq 1 ]]; then
 		echo $SERVICIO
 		systemctl disable $SERVICIO
 	fi
