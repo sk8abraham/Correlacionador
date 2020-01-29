@@ -68,37 +68,13 @@ echo -e "#################################################"
 echo -e "##########    Instalando Logwatch    ############\n"
 sleep 1
 apt install -y logwatch
+/usr/sbin/logwatch --mailto root
 echo -e "#################################################\n\n"
 
 echo -e "#################################################"
 echo -e "##########    Instalando Logcheck    ############\n"
 sleep 1
 apt install -y logcheck
+su -s /bin/bash -c "/usr/sbin/logcheck -m logcheck" logcheck
 echo -e "#################################################\n\n"
 
-echo -e "#################################################"
-echo -e "#########    Usuarios y privilegios    ##########\n"
-echo -e "Configurando permisos para los archivos de cron\n"
-sleep 2
-PATHS_CRON = ("/var/spool/cron/crontabs" "/etc/anacrontab" "/etc/crontab" "/etc/cro.*")
-for CRON_FILE in ${CRON_PATHS[@]}; do
-	if [[ -e "$CRON_FILE" ]]; then
-		chown root:root $CRON_FILE
-		chmod go-rwx $CRON_FILE
-	fi
-done
-
-echo -e "Configurando permisos 700 con dueño root:root para los archivos /etc/passwd /etc/group /etc/shadow /etc/gshadow\n"
-sleep 1
-PGSG_FILES=("/etc/passwd" "/etc/group" "/etc/shadow" "/etc/gshadow")
-for FILE in ${PGSG_FILES[@]}; do
-	if [[ $FILE = "/etc/passwd" ]] || [[ $FILE="/etc/group" ]]; then	VALUE="644";	else VALUE="600"; fi
-	chmod $VALUE $FILE
-	chown root:root $FILE
-done
-
-echo -e "#################################################"
-echo -e "###   Deshabilitando servicios por defecto   ####\n"
-sleep 1
-
-echo -e "#################################################\n\n"
