@@ -29,32 +29,30 @@ escribe_log "$cmd"
 
 echo "###########   Instalando mod-security   #########" | tee -a $LOG
 sleep 1
-cmd= 'apt install -y libapache2-mod-security2'
-itmp=escribe_log $cmd
+cmd='apt install -y libapache2-mod-security2'
+tmp=escribe_log $cmd
 
-if [ $tmp -eq 0 ]; then
+if [[ $tmp -eq 0 ]]; then
 	echo "####### Configurando modsecurity ########" | tee -a $LOG
 	sleep 1
-	cmd='2enmod security2'
+	cmd="a2enmod security2"
 	escribe_log "$cmd"
-	cmd='git clone https://github.com/SpiderLabs/owasp-modsecurity-crs.git'
+	cmd="git clone https://github.com/SpiderLabs/owasp-modsecurity-crs.git"
 	escribe_log "$cmd"
-	cmd='cp -r owasp-modsecurity-crs/rules /etc/modsecurity/'
+	cmd="cp -r owasp-modsecurity-crs/rules /etc/modsecurity/"
 	escribe_log "$cmd"
-	cmd='cp -r owasp-modsecurity-crs/crs-setup.conf.example /etc/modsecurity/crs/crs-setup.conf'
+	cmd="cp -r owasp-modsecurity-crs/crs-setup.conf.example /etc/modsecurity/crs/crs-setup.conf"
 	escribe_log "$cmd"
-	cmd='rm -rf owasp-modsecurity-crs'
+	cmd="rm -rf owasp-modsecurity-crs"
 	escribe_log "$cmd"
-	cmd='cp -r archivos/security2.conf /etc/apache2/mods-enabled/security2.conf'
+	cmd="cp -r archivos/security2.conf /etc/apache2/mods-enabled/security2.conf"
 	escribe_log "$cmd"
-	cmd='cat /etc/apache2/sites-enabled/000-default.conf | sed '/<\/VirtualHost>/ i\SecRuleEngine On' > tmp.txt'
-	escribe_log "$cmd"
-	cmd='cat tmp.txt > /etc/apache2/sites-enabled/000-default.conf'
-	escribe_log "$cmd"
-	cmd='rm -rf tmp.txt'
+	cat /etc/apache2/sites-enabled/000-default.conf | sed "/<\/VirtualHost>/ i\SecRuleEngine On" > tmp.txt
+	cat tmp.txt > /etc/apache2/sites-enabled/000-default.conf
+	cmd="rm -rf tmp.txt"
 	escribe_log "$cmd"
 	cmd='echo "Reiniciando apache"'
-	cmd='systemctl restart apache2'
+	cmd="systemctl restart apache2"
 	escribe_log "$cmd"
 fi
 echo "#########   Instalando libpam  ##############" | tee -a $LOG
@@ -78,8 +76,7 @@ cmd='tar zxf pcre2-10.32.tar.gz -C /tmp/ossec-hids-3.3.0/src/external/'
 escribe_log "$cmd"
 cmd='cd /tmp/ossec-hids-3.3.0/'
 escribe_log "$cmd"
-cmd='echo "\n\nlocal\n\nn\n\n\n\n\n\n\n" | ./install.sh'
-escribe_log "$cmd"
+echo -e "\n\nlocal\n\nn\n\n\n\n\n\n\n" | ./install.sh
 cmd='/var/ossec/bin/ossec-control start'
 escribe_log "$cmd"
 cmd='cd -'
