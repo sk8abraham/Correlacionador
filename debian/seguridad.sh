@@ -12,9 +12,6 @@ SERVICIOS_INSTALADOS="fail2ban.* logcheck.* logwatch.* ssh.* apache.* postgresql
 #Servicios del sistema necesarios
 SERVICIOS_SISTEMA="console.* cron.* d-bus.* keyboard.* network.* r*sync.* r*sys.* syslog.* system.*"
 
-#Puertos a aplicar reglas de firewall
-PUERTOS="20 21 22 53 67 68 80 443"
-
 #Rutas de archivos para configurar privilegios de usuarios
 PATHS_CRON=("/var/spool/cron/crontabs" "/etc/anacrontab" "/etc/crontab" "/etc/cro.*")
 FILES=("/etc/passwd" "/etc/group" "/etc/shadow" "/etc/gshadow")
