@@ -130,9 +130,9 @@ for FILE in ${FILES[@]}; do
 	else 
 		UGO="600"; 
 	fi
-	cmd='chmod $UGO $FILE'
+	cmd="chmod $UGO $FILE"
 	escribe_log "$cmd"
-	cmd='chown root:root $FILE'
+	cmd="chown root:root $FILE"
 	escribe_log "$cmd"
 done
 echo "Listo" | tee -a $LOG
