@@ -122,7 +122,7 @@ echo "Configurando permisos 644 o 600 con dueño root:root para los archivos /et
 sleep 1
 FILES=("/etc/passwd" "/etc/group" "/etc/shadow" "/etc/gshadow")
 for FILE in ${FILES[@]}; do
-	if [[ $FILE = "/etc/passwd" ]] || [[ $FILE="/etc/group" ]]; then
+	if [[ $FILE = "/etc/passwd" ]] || [[ $FILE = "/etc/group" ]]; then
 		UGO="644";
 	else 
 		UGO="600"; 
@@ -154,4 +154,3 @@ for SERVICIO in $SERVICIOS_POR_DEFECTO; do
 done
 
 
-#poc
