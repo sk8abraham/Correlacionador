@@ -51,36 +51,60 @@ Una vez que se ejecuta se deberá de proporcionar la contraseña obtenida en el 
 ## 4.- Crear un Watcher que Envie Correos
 
 ```apacheconf
-PUT _watcher/watch/pokemon_name
+PUT _watcher/watch/test
 {
-  "trigger" : {
-    "schedule" : { "interval" : "1h" } 
+  "trigger": {
+    "schedule": {
+      "interval": "1m"
+    }
   },
-  "input" : {
-    "search" : {
-      "request" : {
-        "indices" : [ "pokemones" ],
-        "body" : {
-          "query" : {
-            "match" : { "message": "Arbok" }
+  "input": {
+    "search": {
+      "request": {
+        "indices": "heartbeat-*",
+        "body": {
+          "query": {
+            "bool": {
+              "must": [
+                { "match": { "monitor.status": "down" } },
+                { "match": { "monitor.type": "http" } },
+                { "wildcard": { "url.full": "*172.16.100.51*" } }
+              ],
+              "filter" : {
+                "range" : {
+                  "@timestamp" : {
+                    "time_zone": "America/Mexico_City",
+                    "gte" : "now-1m",
+                    "lt" : "now"
+                  }
+                }
+              }
+            }
           }
         }
+      }
+    }
+  },
+  "condition": {
+    "compare": {
+      "ctx.payload.hits.hits.0._source.summary.down": {
+        "eq": 1
       }
     }
   },
   "actions" : {
     "log_error" : {
       "logging" : {
-        "text" : "Esto es un texto de prueba que se enviara a la bitacora del cluster"
+        "text" : "XXXXXXXXXXX HeartBeat HTTP Apache XXXXXXXXXXXXX"
       }
     },
     "send_email" : { 
-    "email" : { 
-      "to" : "johnny_sins@mail.com", 
-      "subject" : "Watcher Notification", 
-      "body" : "Probando Email" 
+      "email" : { 
+        "to" : "belk.project.unam.cert@gmail.com", 
+        "subject" : "Watcher Notification", 
+        "body" : "El servidor de apache anda jalando al pelo" 
+      }
     }
-  }
   }
 }
 ```
@@ -94,13 +118,13 @@ Una vez que tenemos todo configurado resulta sencillo hacer un Watcher que envie
 --------> ISO 8601 <--------
 
 ```apacheconf
-python3 -c 'import time; print(time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime()) + ".613Z")'
+python3 -c 'import datetime; print(datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).astimezone().replace(microsecond=0).isoformat())'
 ```
 
 ```apacheconf
-POST  /pokemones/event
+POST  /pokemones/_doc
 {
-  "timestamp" : "2020-01-26T21:15:56",
+  "timestamp" : "2020-01-27T14:35:23-06:00",
   "message" : "Ekans",
 }
 ```
