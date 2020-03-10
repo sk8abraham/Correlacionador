@@ -1,0 +1,24 @@
+{ 
+    "query": {
+        "bool": {
+            "must": [
+                { "match": { "agent.hostname" : "IIS-WS2019" } },
+                { "match": { "http.response.status_code" : "401"  } }
+            ],
+            "filter" : {
+                "range" : {
+                    "@timestamp" : {
+                        "time_zone": "America/Mexico_City",
+                        "gte" : "now-6m",
+                        "lt" : "now"
+                    }
+                }
+            }
+        }
+    },
+    "aggs": {
+        "search": {
+        "terms": { "field": "source.ip" }
+        }
+    }
+}
