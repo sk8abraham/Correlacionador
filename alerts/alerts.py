@@ -1,6 +1,7 @@
 #!/usr/bin/python3 -W ignore
+# -*- coding: utf-8 -*-
 
-import requests, json
+import datetime, json, requests
 
 class Alert():
 
@@ -23,30 +24,38 @@ class Alert():
 
 class Alert_Master():
 
-    def __init__( self, alerts_dict, alerts_functions_dict ):
+    def __init__( self, alerts_dict, alerts_functions_dict, elastic_url, credentials_file_name ):
         
-        self.elastic_url = 'https://172.16.100.1:9200/'
-        self.slack_url = 'https://hooks.slack.com/services/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'
         self.alerts_dict = alerts_dict
         self.alerts_functions_dict = alerts_functions_dict
+        self.elastic_url = elastic_url
+
+        with open( credentials_file_name, 'r' ) as credentials:
+            self.credentials = json.loads( credentials.read() )        
     
     def enrich_alerts_dict( self ):
+
+        '''
+            Description: This function updates status_code and response
+        '''
 
         for alert_name in self.alerts_dict.keys():
             if self.alerts_dict[alert_name].active:
                 with open(self.alerts_dict[alert_name].name, 'r') as alert_search:
+
                     response = requests.get( self.elastic_url + self.alerts_dict[alert_name].index + '/_search',
                                                 headers = { "Content-type" : "application/json" },
                                                 json = json.loads(alert_search.read()),
-                                                auth = requests.auth.HTTPBasicAuth('elastic','elastic'),
+                                                auth = requests.auth.HTTPBasicAuth( self.credentials["elastic_user"], self.credentials["elastic_password"] ),
                                                 verify = False )
 
                     self.alerts_dict[alert_name].status_code = response.status_code 
 
                     if response.status_code == 200:
                         self.alerts_dict[alert_name].response = json.loads(response.content)
+                    #print( response.content.decode('utf-8') ) ##### DEBUG #####
             else:
-                print(f'La alerta {alert_name} no esta activada')
+                print( f'La alerta {alert_name} no esta activada' ) ##### DEBUG #####
                         
     def verify_alerts( self ):
 
@@ -57,25 +66,26 @@ class Alert_Master():
         for alert_name in self.alerts_dict.keys():
             if self.alerts_dict[alert_name].active:
                 self.alerts_dict[alert_name].match, self.alerts_dict[alert_name].message = self.alerts_functions_dict[alert_name]( self.alerts_dict[alert_name].response )
-                print(self.alerts_dict[alert_name])
+                #print( self.alerts_dict[alert_name] ) ##### DEBUG #####
             else:
-                print(f'La alerta {alert_name} no esta activada')
+                print( f'La alerta {alert_name} no esta activada' ) ##### DEBUG #####
 
     def send_alerts( self ):
 
         for alert_name in self.alerts_dict.keys():
             if self.alerts_dict[alert_name].match:
                 if 'slack' in self.alerts_dict[alert_name].media:
-                    response = requests.post( self.slack_url,
+                    response = requests.post( self.credentials["slack_url"],
                                                 headers = { "Content-type" : "application/json" },
                                                 json = { "text" : self.alerts_dict[alert_name].message },
                                                 verify = False )
             else:
-                print(f'La alerta {alert_name} no arrojo resultados')
+                print( f'La alerta {alert_name} no arrojo resultados' ) ##### DEBUG #####
 
 ##### Alerts Dictionary #####
 
-alerts_dict = { 'windows_iis_basic_auth_bruteforce' :  Alert('windows_iis_basic_auth_bruteforce.json', 'filebeat*', True, None, False, '', ['slack'], None) } ##### GLOBAL #####
+alerts_dict = { 'windows_iis_basic_auth_bruteforce' :  Alert('windows_iis_basic_auth_bruteforce.json', 'filebeat*', False, None, False, '', ['slack'], None),
+                'windows_login_admin_logins' :  Alert('windows_login_admin_logins.json', 'winlogbeat*', True, None, False, '', ['slack'], None) } ##### GLOBAL #####
 
 ##### Alerts' Functions [They parse the response to genreate the message to send] #####
 
@@ -91,14 +101,40 @@ def windows_iis_basic_auth_bruteforce( response ):
         
     return ( False, '' )
 
-alerts_functions_dict = {
-                            'windows_iis_basic_auth_bruteforce' : windows_iis_basic_auth_bruteforce
-                        }
+def windows_login_admin_logins( response ):
 
-poc = Alert_Master( alerts_dict, alerts_functions_dict )
+    if response["aggregations"]["search"]["buckets"]:
+
+        admin_logins = ''
+
+        for admin_login in response["aggregations"]["search"]["buckets"]:
+            admin_logins += f'\tEl usuario { admin_login["key"] } inició sesión { admin_login["doc_count"] } veces\n'
+        
+        print( f'SE DETECTARON LOS SIGUIENTES INICIOS DE SESIÓN DE USUARIOS ADMINISTRADORES\n{ admin_logins }'.rstrip() ) ##### DEBUG #####
+
+        return ( True, f'SE DETECTARON LOS SIGUIENTES INICIOS DE SESIÓN DE USUARIOS ADMINISTRADORES\n{ admin_logins }'.rstrip() )
+
+    return ( False, '' )
+
+
+alerts_functions_dict = { 'windows_iis_basic_auth_bruteforce' : windows_iis_basic_auth_bruteforce,
+                            'windows_login_admin_logins' : windows_login_admin_logins }
+
+poc = Alert_Master( alerts_dict, alerts_functions_dict, 'https://172.16.100.1:9200/', '/home/jeipi/credentials.json' )
 poc.enrich_alerts_dict()
 poc.verify_alerts()
-poc.send_alerts()
+#poc.send_alerts()
 
 #import subprocess
 #commando = subprocess.run(["curl", "-X", "POST", "-H", "'Content-type: aplication/json'", "--data", "{'text':'Prueba'}", slack_channel], capture_output=True)
+
+### Polish Request ###
+
+    # if alert_name == 'windows_login_admin_logins':
+
+    #     date = datetime.datetime.utcnow()
+    #     lte = date.replace(tzinfo=datetime.timezone.utc).astimezone().replace(microsecond=0).isoformat()
+    #     gte = (date - datetime.timedelta( minutes =15 )).replace(tzinfo=datetime.timezone.utc).astimezone().replace(microsecond=0).isoformat()
+
+    #     data["query"]["bool"]["filter"]["range"]["@timestamp"]["gte"] = gte
+    #     data["query"]["bool"]["filter"]["range"]["@timestamp"]["lte"] = lte

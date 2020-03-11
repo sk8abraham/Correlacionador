@@ -4,20 +4,24 @@
             "must": [
                 {
                     "term": {
-                        "agent.hostname": "IIS-WS2019"
+                        "event.code": "4624"
                     }
                 },
                 {
-                    "term": {
-                        "http.response.status_code": "401"
+                    "terms": {
+                        "winlog.event_data.TargetUserName": [
+                            "Administrator",
+                            "jesus.pacheco",
+                            "pedro.rodriguez",
+                            "abraham.manzano"
+                        ]
                     }
                 }
             ],
             "filter": {
                 "range": {
                     "@timestamp": {
-                        "time_zone": "America/Mexico_City",
-                        "gte": "now-100h",
+                        "gte": "now-10M",
                         "lt": "now"
                     }
                 }
@@ -27,7 +31,7 @@
     "aggs": {
         "search": {
             "terms": {
-                "field": "source.ip"
+                "field": "winlog.event_data.TargetUserName"
             }
         }
     }
