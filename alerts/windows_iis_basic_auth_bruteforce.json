@@ -17,7 +17,7 @@
                 "range": {
                     "@timestamp": {
                         "time_zone": "America/Mexico_City",
-                        "gte": "now-100h",
+                        "gte": "now-10m",
                         "lt": "now"
                     }
                 }

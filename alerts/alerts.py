@@ -84,10 +84,10 @@ class Alert_Master():
 
 ##### Alerts Dictionary #####
 
-alerts_dict = { 'windows_iis_basic_auth_bruteforce' :  Alert('windows_iis_basic_auth_bruteforce.json', 'filebeat*', False, None, False, '', ['slack'], None),
-                'windows_login_admin_logins' :  Alert('windows_login_admin_logins.json', 'winlogbeat*', True, None, False, '', ['slack'], None) } ##### GLOBAL #####
+alerts_dict = { 'windows_iis_basic_auth_bruteforce' :  Alert( 'windows_iis_basic_auth_bruteforce.json', 'filebeat*', True, None, False, '', ['slack'], None ),
+                'windows_login_admin_logins' :  Alert( 'windows_login_admin_logins.json', 'winlogbeat*', True, None, False, '', ['slack'], None ) }
 
-##### Alerts' Functions [They parse the response to genreate the message to send] #####
+##### Alerts' Functions Dictionary [They parse the response to genreate the message to send] #####
 
 def windows_iis_basic_auth_bruteforce( response ):
 
@@ -96,7 +96,8 @@ def windows_iis_basic_auth_bruteforce( response ):
         attack_ip = response["aggregations"]["search"]["buckets"][0]["key"]
         attempts_number = response["aggregations"]["search"]["buckets"][0]["doc_count"]
 
-        if attempts_number > 50:
+        if attempts_number > 20:
+            write_log( f'windows_iis_basic_auth_bruteforce::IP: {attack_ip}::Intentos: {attempts_number}\n' )
             return ( True, f'Ataque de Fuerza Bruta a Autenticación Basic Detectada\n\tEquipo: IIS-WS2019\n\tIP Atacante: {attack_ip}\n\tNúmero de Intentos: {attempts_number}' )
         
     return ( False, '' )
@@ -110,15 +111,18 @@ def windows_login_admin_logins( response ):
         for admin_login in response["aggregations"]["search"]["buckets"]:
             admin_logins += f'\tEl usuario { admin_login["key"] } inició sesión { admin_login["doc_count"] } veces\n'
         
-        print( f'SE DETECTARON LOS SIGUIENTES INICIOS DE SESIÓN DE USUARIOS ADMINISTRADORES\n{ admin_logins }'.rstrip() ) ##### DEBUG #####
+        write_log( f'SE DETECTARON LOS SIGUIENTES INICIOS DE SESIÓN DE USUARIOS ADMINISTRADORES\n{ admin_logins }'.replace("\n", "") + '\n' ) ##### DEBUG #####
 
         return ( True, f'SE DETECTARON LOS SIGUIENTES INICIOS DE SESIÓN DE USUARIOS ADMINISTRADORES\n{ admin_logins }'.rstrip() )
 
     return ( False, '' )
 
-
 alerts_functions_dict = { 'windows_iis_basic_auth_bruteforce' : windows_iis_basic_auth_bruteforce,
                             'windows_login_admin_logins' : windows_login_admin_logins }
+
+def write_log( string ):
+    with open('/home/jeipi/alerts.log', 'a') as alerts_log:
+        alerts_log.write(f'{(datetime.datetime.utcnow()).replace(tzinfo=datetime.timezone.utc).astimezone().replace(microsecond=0).isoformat()} {string}\n')
 
 poc = Alert_Master( alerts_dict, alerts_functions_dict, 'https://172.16.100.1:9200/', '/home/jeipi/credentials.json' )
 poc.enrich_alerts_dict()
