@@ -72,7 +72,7 @@ config log syslogd filter
 end
 ```
 #### Topologia implementada para ELK
-![7d502365.png](:storage/fbae03fa-e5e7-476e-90bf-a4e58f037969/7d502365.png)
+![7d502365.png](Documentación/attachments/7d502365.png)
 
 
 - [Conetix Network Operations Centre Build Part 3 - Metrics and Monitoring • Conetix](https://conetix.com.au/blog/conetix-network-operations-centre-build-part-3/)
