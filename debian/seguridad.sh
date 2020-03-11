@@ -1,104 +1,190 @@
 #!/bin/bash
-echo -e "#################################################"
-echo -e "#### Instalacion de elementos de seguridad  ####"
-echo -e "#################################################\n\n"
-sleep 1
-echo -e "#################################################"
-echo -e "###########   Instalando sudo   ###############\n"
-sleep 1
-apt install -y sudo
-echo -e "#################################################\n\n"
+#Archivo donde se escribira el log
+LOG='seguridad_log.txt'
+echo "" > $LOG
 
-echo -e "#################################################"
-echo -e "###########   Instalando mod-security   #########\n"
-sleep 1
-apt install -y libapache2-mod-security2
+#El usuario a quien van dirigidos los mail
+MAILTO="root"
 
-if [ $? -eq 0 ]; then
-	echo -e "####### Configurando modsecurity ########'\n"
+#Servicios instalados por el administrador
+SERVICIOS_INSTALADOS="fail2ban.* logcheck.* logwatch.* ssh.* apache.* postgresql.* open-vm-tools.*"
+
+#Servicios del sistema necesarios
+SERVICIOS_SISTEMA="console.* cron.* d-bus.* keyboard.* network.* r*sync.* r*sys.* syslog.* system.*"
+
+#Rutas de archivos para configurar privilegios de usuarios
+PATHS_CRON=("/var/spool/cron/crontabs" "/etc/anacrontab" "/etc/crontab" "/etc/cro.*")
+FILES=("/etc/passwd" "/etc/group" "/etc/shadow" "/etc/gshadow")
+
+
+
+escribe_log()
+#Funcion que escribe el resultado de la ejecucion de un comando en el archivo de log
+#Recibe: Comando
+#Regresa: Ejecucion exitosa o no del comando, 1 o 0 respectivamente
+{
+	$1
+	if [[ $?  -ne 0 ]]; then
+		echo "[`date +"%F %X"`]: $1     [ERROR]" | tee -a $LOG
+		return 0
+	else
+		echo "[`date +"%F %X"`]: $1     [OK]" | tee -a $LOG
+		return 1
+	fi
+}
+
+echo "#### Instalacion de elementos de seguridad  ####" | tee -a $LOG
+sleep 1
+
+echo "###########   Instalando sudo   ###############" | tee -a $LOG
+sleep 1 
+cmd='apt install -y sudo'
+escribe_log "$cmd"
+
+echo "###########   Instalando mod-security   #########" | tee -a $LOG
+sleep 1
+cmd='apt install -y libapache2-mod-security2'
+tmp=escribe_log $cmd
+
+if [[ $tmp -eq 0 ]]; then
+	echo "####### Configurando modsecurity ########" | tee -a $LOG
 	sleep 1
-	2enmod security2
-	#systemctl restart apache2
-	git clone https://github.com/SpiderLabs/owasp-modsecurity-crs.git
-	cp -r owasp-modsecurity-crs/rules /etc/modsecurity/
-	cp -r owasp-modsecurity-crs/crs-setup.conf.example /etc/modsecurity/crs/crs-setup.conf
-	rm -rf owasp-modsecurity-crs
-	cp -r archivos/security2.conf /etc/apache2/mods-enabled/security2.conf
-	cat /etc/apache2/sites-enabled/000-default.conf | sed '/<\/VirtualHost>/ i\SecRuleEngine On' > tmp.txt
+	#Activando modsecurity
+	cmd="a2enmod security2"
+	escribe_log "$cmd"
+	#Descargando la lista de reglas mas actuales de seguridad, del repositorio oficial de modsecurity
+	cmd="git clone https://github.com/SpiderLabs/owasp-modsecurity-crs.git"
+	escribe_log "$cmd"
+	#Copiando las reglas descargadas al directorio correspondiente para poder aplicarlas
+	cmd="cp -r owasp-modsecurity-crs/rules /etc/modsecurity/"
+	escribe_log "$cmd"
+	#Copiando el archivo de configuracion de modsecurity
+	cmd="cp -r owasp-modsecurity-crs/crs-setup.conf.example /etc/modsecurity/crs/crs-setup.conf"
+	escribe_log "$cmd"
+	#Eliminando directorio de modsecurity previamente descargado
+	cmd="rm -rf owasp-modsecurity-crs"
+	escribe_log "$cmd"
+	#Copiando archivo de configuracion de reglas del modulo modsecurity al directorio de apache
+	cmd="cp -r archivos/security2.conf /etc/apache2/mods-enabled/security2.conf"
+	escribe_log "$cmd"
+	#Configurando virtual host con modsecurity habilitado en un archivo temporal
+	cat /etc/apache2/sites-enabled/000-default.conf | sed "/<\/VirtualHost>/ i\SecRuleEngine On" > tmp.txt
+	#Reescribiendo cambios en el archivo de configuracion del sitio
 	cat tmp.txt > /etc/apache2/sites-enabled/000-default.conf
-	rm -rf tmp.txt
-	echo "Reiniciando apache"
-	systemctl restart apache2
+	#Eliminando archivo temporal
+	cmd="rm -rf tmp.txt"
+	escribe_log "$cmd"
+	echo -e "Reiniciando apache" | tee -a $LOG
+	#Reiniciando el servicio
+	cmd="systemctl restart apache2"
+	escribe_log "$cmd"
 fi
-echo -e "#################################################\n\n"
 
-echo -e "#################################################"
-echo -e "#########   Instalando libpam  ##############\n"
+
+echo "#########   Instalando libpam  ##############" | tee -a $LOG
 sleep 1
-apt install -y libpam-pwquality cracklib-runtime
-cp archivos/common-password /etc/pam.d/common-password
-echo -e "#################################################\n\n"
+cmd='apt install -y libpam-pwquality cracklib-runtime'
+escribe_log "$cmd"
+#Aplicando reglas de contraseña segura
+cmd='cp archivos/common-password /etc/pam.d/common-password'
+escribe_log "$cmd"
+echo "Establecida politica de contraseñas: longitud minima=8, cambio de al menos 3 caracteres de la contraseña anterior, reachaza contraseñas con 3 caracteres consecutivos, al menos una letra mayuscula, al menos una minuscula, al menos un digito" | tee -a $LOG
 
-
-echo -e "#################################################"
-echo -e "########   Instalando OSSEC IDS    ##############\n"
+echo "########   Instalando OSSEC IDS    ##############" | tee -a $LOG
 sleep 1
-apt install -y inotify-tools gcc zlib1g-dev build-essential
-wget https://github.com/ossec/ossec-hids/archive/3.3.0.tar.gz
-tar xzf 3.3.0.tar.gz -C /tmp/
-wget https://ftp.pcre.org/pub/pcre/pcre2-10.32.tar.gz
-tar zxf pcre2-10.32.tar.gz -C /tmp/ossec-hids-3.3.0/src/external/
-cd /tmp/ossec-hids-3.3.0/
+cmd='apt install -y inotify-tools gcc zlib1g-dev build-essential'
+escribe_log "$cmd"
+cmd='wget https://github.com/ossec/ossec-hids/archive/3.3.0.tar.gz'
+escribe_log "$cmd"
+cmd='tar xzf 3.3.0.tar.gz -C /tmp/'
+escribe_log "$cmd"
+cmd='wget https://ftp.pcre.org/pub/pcre/pcre2-10.32.tar.gz'
+escribe_log "$cmd"
+cmd='tar zxf pcre2-10.32.tar.gz -C /tmp/ossec-hids-3.3.0/src/external/'
+escribe_log "$cmd"
+cmd='cd /tmp/ossec-hids-3.3.0/'
+escribe_log "$cmd"
 echo -e "\n\nlocal\n\nn\n\n\n\n\n\n\n" | ./install.sh
-/var/ossec/bin/ossec-control start
-cd -
-rm 3.3.0.tar.gz pcre2-10.32.tar.gz
+cmd='/var/ossec/bin/ossec-control start'
+escribe_log "$cmd"
+cmd='cd -'
+escribe_log "$cmd"
+cmd='rm 3.3.0.tar.gz pcre2-10.32.tar.gz'
+escribe_log "$cmd"
 
-echo -e "#################################################\n\n"
-
-
-echo -e "#################################################"
-echo -e "##########    Instalando Fail2ban    ############\n"
+echo "##########    Instalando Fail2ban    ############" | tee -a $LOG
 sleep 1
-apt install -y fail2ban
-cp /etc/fail2ban/fail2ban.conf /etc/fail2ban/fail2ban.local
-echo -e "#################################################\n\n"
+cmd='apt install -y fail2ban'
+escribe_log "$cmd"
+#Copiando archivo de configuracion de fail2ban en el archivo correspondiente
+cmd='cp /etc/fail2ban/fail2ban.conf /etc/fail2ban/fail2ban.local'
+escribe_log "$cmd"
 
-echo -e "#################################################"
-echo -e "##########    Instalando Logwatch    ############\n"
+echo "##########    Instalando Logwatch    ############" | tee -a $LOG
 sleep 1
-apt install -y logwatch
-echo -e "#################################################\n\n"
+cmd='apt install -y logwatch'
+escribe_log "$cmd"
+#Configurando a quien va dirigido el mail
+cmd='/usr/sbin/logwatch --mailto $MAILTO'
+escribe_log "$cmd"
 
-echo -e "#################################################"
-echo -e "##########    Instalando Logcheck    ############\n"
+echo "##########    Instalando Logcheck    ############\n"
 sleep 1
-apt install -y logcheck
-echo -e "#################################################\n\n"
+cmd='apt install -y logcheck'
+escribe_log "$cmd"
+cmd='su -s /bin/bash -c "/usr/sbin/logcheck -m $MAILTO" logcheck'
+escribe_log "$cmd"
 
-echo -e "#################################################"
-echo -e "#########    Usuarios y privilegios    ##########\n"
-echo -e "Configurando permisos para los archivos de cron\n"
+echo "#########    Usuarios y privilegios    ##########\n"
+echo "Configurando permisos para los archivos de cron\n"
 sleep 2
-PATHS_CRON = ("/var/spool/cron/crontabs" "/etc/anacrontab" "/etc/crontab" "/etc/cro.*")
 for CRON_FILE in ${CRON_PATHS[@]}; do
 	if [[ -e "$CRON_FILE" ]]; then
-		chown root:root $CRON_FILE
-		chmod go-rwx $CRON_FILE
+		#Cambiando permisos para que solo root tenga acceso a ellos
+		cmd='chown root:root $CRON_FILE'
+		escribe_log "$cmd"
+		#Cambiando permisos para grupo y otros
+		cmd='chmod go-rwx $CRON_FILE'
+		escribe_log "$cmd"
 	fi
 done
 
-echo -e "Configurando permisos 700 con dueño root:root para los archivos /etc/passwd /etc/group /etc/shadow /etc/gshadow\n"
+echo "Configurando permisos 644 o 600 con dueño root:root para los archivos /etc/passwd /etc/group /etc/shadow /etc/gshadow" | tee -a $LOG
 sleep 1
-PGSG_FILES=("/etc/passwd" "/etc/group" "/etc/shadow" "/etc/gshadow")
-for FILE in ${PGSG_FILES[@]}; do
-	if [[ $FILE = "/etc/passwd" ]] || [[ $FILE="/etc/group" ]]; then	VALUE="644";	else VALUE="600"; fi
-	chmod $VALUE $FILE
-	chown root:root $FILE
+for FILE in ${FILES[@]}; do
+	if [[ $FILE = "/etc/passwd" ]] || [[ $FILE = "/etc/group" ]]; then
+		UGO="644";
+	else 
+		UGO="600"; 
+	fi
+	#Asignando permisos a archivos
+	cmd="chmod $UGO $FILE"
+	escribe_log "$cmd"
+	#Cambiando propiedad de los archivos a root
+	cmd="chown root:root $FILE"
+	escribe_log "$cmd"
 done
 
-echo -e "#################################################"
-echo -e "###   Deshabilitando servicios por defecto   ####\n"
+echo "###   Deshabilitando servicios por defecto   ####" | tee -a $LOG
 sleep 1
+#Definiendo que servicios no se van a desahabilitar
+TODOS="${SERVICIOS_SISTEMA} ${SERVICIOS_INSTALADOS}"
+#Listando todos los servicios
+SERVICIOS_POR_DEFECTO=$(systemctl list-unit-files --state=enabled --type=service | grep enabled | cut -f1 -d" " | tr '\n' ' ')
+for SERVICIO in $SERVICIOS_POR_DEFECTO; do
+	FLG=1
+	for NO_DESHABILITAR in $TODOS; do
+		if [[ "$SERVICIO" =~ $NO_DESHABILITAR ]]; then
+			FLG=0
+			break
+		fi
+		done
+	if [[ $FLG -eq 1 ]]; then
+		#Deshabilitando servicio que no este en la lista TODOS, en los cuales estan los servicios que no se deben deshabilitar
+		cmd="systemctl disable $SERVICIO"
+		escribe_log "$cmd"
+		echo -e "---------------------"
+	fi
+done
 
-echo -e "#################################################\n\n"
+
