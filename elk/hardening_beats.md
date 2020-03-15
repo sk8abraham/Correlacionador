@@ -126,11 +126,42 @@ processors:
 ```
 
 ## Filebeat
+Configuración general de filebeat instalado por paquetes:  
 
-
-
+```apacheconf
+filebeat.inputs:
+- type: log
+  enabled: false
+  paths:
+    - /var/log/proftpd/proftpd.log
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+setup.template.settings:
+  index.number_of_shards: 1
+setup.kibana:
+  host: "172.16.100.3:5601"
+output.elasticsearch:
+  hosts: ["https://172.16.100.1:9200","https://172.16.100.2:9200","https://172.16.100.5:9200"]
+  username: "filebeat_writer"
+  password: "filebeat_writer"
+  ssl.certificate_authorities: ["/etc/ssl/certs/ca.pem"]
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat2
+  keepfiles: 3
+  permissions: 0644
+```
 ## Referencias
 
 https://www.elastic.co/guide/en/beats/metricbeat/current/securing-beats.html
 https://www.elastic.co/guide/en/beats/heartbeat/current/securing-beats.html
 https://www.elastic.co/guide/en/beats/winlogbeat/current/securing-beats.html
+https://www.elastic.co/guide/en/beats/filebeat/current/securing-beats.html
