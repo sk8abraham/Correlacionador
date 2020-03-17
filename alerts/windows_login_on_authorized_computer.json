@@ -1,0 +1,31 @@
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "event.code": "4624"
+          }
+        },
+        {
+          "terms": {
+            "winlog.event_data.TargetUserName": [
+              "Administrator",
+              "jesus.pacheco",
+              "pedro.rodriguez",
+              "abraham.manzano"
+            ]
+          }
+        }
+      ],
+      "filter": {
+        "range": {
+          "@timestamp": {
+            "gte": "now-1m",
+            "lt": "now"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/python3 -W ignore
 # -*- coding: utf-8 -*-
 
-import datetime, json, requests
+import datetime, json, requests, subprocess
 
 class Alert():
 
@@ -53,9 +53,9 @@ class Alert_Master():
 
             if self.alerts_dict[alert_name].active and self.throttle_period_dict[alert_name] == 1: # If the alert has been enabled and throttle_period is One
 
-                write_log( f' Ready 2 execute:: { alert_name } throttle_period:: { self.throttle_period_dict[ alert_name ] }' ) ##### DEBUG #####
+                write_log( f' Ready to execute:: { alert_name } throttle_period:: { self.throttle_period_dict[ alert_name ] }' ) ##### DEBUG #####
 
-                with open( self.alerts_dict[alert_name].name, "r" ) as alert_search: # Open the json request that is going to be requested to elastic-cluster
+                with open( self.alerts_dict[ alert_name ].name, "r" ) as alert_search: # Open the json request that is going to be requested to elastic-cluster
 
                     response = requests.get( self.elastic_url + self.alerts_dict[alert_name].index + '/_search',
                                                 headers = { "Content-type" : "application/json" },
@@ -63,13 +63,16 @@ class Alert_Master():
                                                 auth = requests.auth.HTTPBasicAuth( self.credentials["elastic_user"], self.credentials["elastic_password"] ),
                                                 verify = False ) # Build the request and send it to elastic-cluster
 
-                    self.alerts_dict[alert_name].status_code = response.status_code # Update the status_code of the current Alert object
+                    self.alerts_dict[ alert_name ].status_code = response.status_code # Update the status_code of the current Alert object
 
                     if response.status_code == 200: # If a successful response has been recieved
-                        self.alerts_dict[alert_name].response = json.loads( response.content ) # Update response of the current Alert object
+                        self.alerts_dict[ alert_name ].response = json.loads( response.content ) # Update response of the current Alert object
                     
                     self.alerts_dict[ alert_name ].match, self.alerts_dict[ alert_name ].message = self.alerts_functions_dict[ alert_name ]( self.alerts_dict[ alert_name ].response )
                     
+                    if not self.alerts_dict[ alert_name ].match:
+                        self.throttle_period_dict[ alert_name] = 2
+
                     write_log( f'{ self.alerts_dict[ alert_name ] }' ) ##### DEBUG #####
 
             else:
@@ -91,6 +94,16 @@ class Alert_Master():
 
                     if response.status_code == 200:
                         write_log( f'Info,Alerta enviada a Slack,{ alert_name },{ self.throttle_period_dict[ alert_name ] }' ) ##### DEBUG #####
+                
+                elif 'mail' in self.alerts_dict[ alert_name ].media:
+
+                    run_process = subprocess.run( [ 'mail', '-s', 'Belk Alerts', self.credentials[ "mail" ] ] , input = self.alerts_dict[ alert_name ].message, encoding = 'ascii' )
+
+                    if run_process.returncode != 0:
+                        write_log( f'Info,Alerta no enviada por correo. Ocurrio un error,{ alert_name },{ self.throttle_period_dict[ alert_name ] }' ) ##### DEBUG #####
+                    else:
+                        write_log( f'Info,Alerta enviada por correo exitosamente,{ alert_name },{ self.throttle_period_dict[ alert_name ] }' ) ##### DEBUG #####
+
             else:
 
                 if not self.alerts_dict[alert_name].active:
@@ -113,8 +126,11 @@ class Alert_Master():
 
 ##### Alerts Dictionary #####
 
+### Alert ( name, index, throttle_period, active, status_code, match, message, media, response )
+
 alerts_dict = { 'windows_iis_basic_auth_bruteforce' :  Alert( 'windows_iis_basic_auth_bruteforce.json', 'filebeat*', 10, False, None, False, '', ['slack'], None ),
-                'windows_login_admin_logins' :  Alert( 'windows_login_admin_logins.json', 'winlogbeat*', 1, True, None, False, '', ['slack'], None ) }
+                'windows_login_admin_logins' :  Alert( 'windows_login_admin_logins.json', 'winlogbeat*', 1, False, None, False, '', ['slack'], None ),
+                'windows_login_on_authorized_computer' :  Alert( 'windows_login_on_authorized_computer.json', 'winlogbeat*', 1, True, None, False, '', ['slack'], None ) }
 
 ##### Alerts' Functions Dictionary [They parse the response to genreate the message to send] #####
 
@@ -147,8 +163,35 @@ def windows_login_admin_logins( response ):
 
     return ( False, '' )
 
+def windows_login_on_authorized_computer( response ):
+
+    users = []
+    message = ''
+
+    # Se define a que computadora tiene acceso cada usuario.
+
+    users_and_computers_dict = { "Administrator" : [ "AD-WS2019" ],
+                                    "jesus.pacheco" : [ "IIS-WS2019" ],
+                                    "abraham.manzano" : [ "IIS-WS2019" ],
+                                    "pedro.rodriguez" : [ "IIS-WS2019" ] }
+    
+    if response["hits"]["total"]["value"] > 0:
+        for hit in response["hits"]["hits"]:
+            hostname = hit["_source"]["host"]["name"]
+            user_name = hit["_source"]["winlog"]["event_data"]["TargetUserName"]
+            if user_name not in users:
+                users.append( user_name )
+                if hostname not in users_and_computers_dict[ user_name ]:
+                    message += f"\tEl usuario { user_name } accedió a la computadora { hostname } sin estar autorizado.\n"
+        
+        if message:
+            return ( True, f"SE DETECTARON USUARIOS ACCEDIENDO A EQUIPOS QUE NO LES CORRESPONDE\n{ message }" )
+
+    return ( False, '' )
+
 alerts_functions_dict = { 'windows_iis_basic_auth_bruteforce' : windows_iis_basic_auth_bruteforce,
-                            'windows_login_admin_logins' : windows_login_admin_logins }
+                            'windows_login_admin_logins' : windows_login_admin_logins,
+                            'windows_login_on_authorized_computer' : windows_login_on_authorized_computer }
 
 def write_log( string ):
     with open('/home/jeipi/alerts.log', 'a') as alerts_log:
