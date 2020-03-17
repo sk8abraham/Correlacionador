@@ -37,7 +37,7 @@ class Alert_Master():
         ##### Aqui se esta cargando el archvo json que va a controlar si una alerta ya ha sido enviada, esta no se vuelva a enviar
 
         try:
-            with open( "/home/jeipi/throttle_period.json", "r" ) as throttle_period:
+            with open( "/home/belk/throttle_period.json", "r" ) as throttle_period:
                 self.throttle_period_dict = json.loads( throttle_period.read() )
                 ### print( json.dumps( self.throttle_period_dict, indent = 2 ), type( self.throttle_period_dict ) ) ##### DEBUG #####
         except FileNotFoundError:
@@ -95,9 +95,11 @@ class Alert_Master():
                     if response.status_code == 200:
                         write_log( f'Info,Alerta enviada a Slack,{ alert_name },{ self.throttle_period_dict[ alert_name ] }' ) ##### DEBUG #####
                 
-                elif 'mail' in self.alerts_dict[ alert_name ].media:
+               	if 'mail' in self.alerts_dict[ alert_name ].media:
+                    
+                    print('SI ESTOY ENTRANDO KRNAL')
 
-                    run_process = subprocess.run( [ 'mail', '-s', 'Belk Alerts', self.credentials[ "mail" ] ] , input = self.alerts_dict[ alert_name ].message, encoding = 'ascii' )
+                    run_process = subprocess.run( [ 'mail', '-s', 'Belk Alerts', self.credentials[ "mail" ] ] , input = self.alerts_dict[ alert_name ].message, encoding = 'utf-8' )
 
                     if run_process.returncode != 0:
                         write_log( f'Info,Alerta no enviada por correo. Ocurrio un error,{ alert_name },{ self.throttle_period_dict[ alert_name ] }' ) ##### DEBUG #####
@@ -121,7 +123,7 @@ class Alert_Master():
             else:
                 self.throttle_period_dict[ alert_name ] -= 1
 
-        with open( "/home/jeipi/throttle_period.json", "w" ) as throttle_period:
+        with open( "/home/belk/throttle_period.json", "w" ) as throttle_period:
             throttle_period.write( json.dumps( self.throttle_period_dict, indent = 2 ) )
 
 ##### Alerts Dictionary #####
@@ -130,7 +132,7 @@ class Alert_Master():
 
 alerts_dict = { 'windows_iis_basic_auth_bruteforce' :  Alert( 'windows_iis_basic_auth_bruteforce.json', 'filebeat*', 10, False, None, False, '', ['slack'], None ),
                 'windows_login_admin_logins' :  Alert( 'windows_login_admin_logins.json', 'winlogbeat*', 1, False, None, False, '', ['slack'], None ),
-                'windows_login_on_authorized_computer' :  Alert( 'windows_login_on_authorized_computer.json', 'winlogbeat*', 1, True, None, False, '', ['slack'], None ) }
+                'windows_login_on_authorized_computer' :  Alert( 'windows_login_on_authorized_computer.json', 'winlogbeat*', 5, True, None, False, '', ['slack', 'mail'], None ) }
 
 ##### Alerts' Functions Dictionary [They parse the response to genreate the message to send] #####
 
@@ -182,7 +184,7 @@ def windows_login_on_authorized_computer( response ):
             if user_name not in users:
                 users.append( user_name )
                 if hostname not in users_and_computers_dict[ user_name ]:
-                    message += f"\tEl usuario { user_name } accedió a la computadora { hostname } sin estar autorizado.\n"
+                    message += f"\tEl usuario { user_name } accedio a la computadora { hostname } sin estar autorizado.\n"
         
         if message:
             return ( True, f"SE DETECTARON USUARIOS ACCEDIENDO A EQUIPOS QUE NO LES CORRESPONDE\n{ message }" )
@@ -194,10 +196,10 @@ alerts_functions_dict = { 'windows_iis_basic_auth_bruteforce' : windows_iis_basi
                             'windows_login_on_authorized_computer' : windows_login_on_authorized_computer }
 
 def write_log( string ):
-    with open('/home/jeipi/alerts.log', 'a') as alerts_log:
+    with open('/home/belk/alerts.log', 'a') as alerts_log:
         alerts_log.write( f'{ (datetime.datetime.utcnow()).replace(tzinfo=datetime.timezone.utc).astimezone().replace(microsecond=0).isoformat() },{ string }\n' )
 
-poc = Alert_Master( alerts_dict, alerts_functions_dict, 'https://172.16.100.1:9200/', '/home/jeipi/credentials.json' )
+poc = Alert_Master( alerts_dict, alerts_functions_dict, 'https://172.16.100.1:9200/', '/home/belk/credentials.json' )
 
 poc.enrich_alerts_dict()
 poc.send_alerts()
