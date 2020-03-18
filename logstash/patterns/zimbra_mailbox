@@ -1,0 +1,6 @@
+ZIMBRA_MAILBOX_ID_SOAP \[%{ZIMBRA_QTP_ID:identifier}:%{ZIMBRA_SOAP:soap}\]
+ZIMBRA_SOAP_HANDLER SoapEngine - handler exception: authentication failed for
+ZIMBRA_CLIENT [\w\/\.\s\-\(\)]*
+ZIMBRA_QTP_ID qtp[\d-]*
+ZIMBRA_SOAP (.|http|https)?:?\/\/[\w\/:\.\~\?\=\&]*
+ZIMBRA_USER (%{EMAILADDRESS}|%{EMAILLOCALPART})

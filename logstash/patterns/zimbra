@@ -1,0 +1,46 @@
+# audit.log
+ZMQTP \[qtp%{NUMBER:qtp_process}-%{DATA:qtp_thread}:%{DATA:qtp_info}\]
+ZMLOGLEVEL %{WORD:level}
+ZMPROCESS %{DATA:zm_process}
+ZMTHREAD %{NONNEGINT:thread}
+ZMUSERAGENT %{DATA:user_agent}(/| - )%{DATA:user_agent_ver}
+ZMPROGRAM \[%{ZMPROCESS}(-%{ZMTHREAD})?(:%{DATA:program_info})?\]
+ZMCLIENT \[(name=%{DATA:username};)?(aname=%{DATA:delegated_username};)?(mid=%{NUMBER:mid};)?(ip=%{IPORHOST:src_ip};)?(DeviceID=%{DATA:device};)?(oip=%{IPORHOST:clientip}(, %{IPORHOST:clientip})?;)?(via=%{DATA:via};)?(ua=%{ZMUSERAGENT};)?\]
+ZMCOMMAND cmd=%{WORD:command}
+ZMCOMMAND_PARAMS (%{WORD:username_type}=%{DATA:username}(; protocol=%{WORD:protocol})?(; error=%{DATA:error})?(; feature=%{WORD:feature})?(; member=%{DATA:member})?(; status=%{WORD:status})?;)?
+ZMAUDIT %{TIMESTAMP_ISO8601:created_at} %{ZMLOGLEVEL}  %{ZMPROGRAM} %{ZMCLIENT} security - %{ZMCOMMAND};( %{ZMCOMMAND_PARAMS})?
+
+
+# mailbox.log
+ELAPSED elapsed=%{NUMBER:elapsed}
+MAILBOX_COMMAND (\(batch\) )?%{WORD:command}( %{WORD:item_type}(:)? )?
+COMMAND_EXTRA ( %{GREEDYDATA:command_params})? (%{NUMBER:elapsed}ms)?
+
+ADDING_MESSAGE_OP id=%{NUMBER:item_id},)? (Message-ID=<%{DATA:messageid}>,)? (parentId=%{NUMBER:parent_id},)? (folderId=%{NUMBER:folder_id},)? (folderName=%{DATA:folder_name}$
+
+MOVING_MESSAGE_OP \(id=%{NUMBER:item_id}\) to Folder %{DATA:folder_name} \(id=%{NUMBER:folder_id}\)
+
+DELETING_MESSAGE_OP (\(id=%{NUMBER:item_id}\))?\.$
+
+ZMMAILBOX %{TIMESTAMP_ISO8601:created_at} %{ZMLOGLEVEL} ( )?(%{ZMQTP}|%{ZMPROGRAM}) %{ZMCLIENT} %{DATA:protocol} - %{MAILBOX_COMMAND}((%{ADDING_MESSAGE_OP})?(%{MOVING_MESSAGE_OP})?(%{DELETING_MESSAGE_OP})?)?( elapsed=%{NUMBER:elapsed})?
+
+#
+# zimbra mailbox.log
+ZIMBRA_COMPONENT Timer-Zimbra|Junk-NotJunk-Handler|MailboxPurge|btpool|pool|LmtpServer|ImapServer|ImapSSLServer|Imap-Idle-Proxy-ImapServer|Pop3Server|Pop3SSLServer|ScheduledTask|AnonymousIoService|CloudRoutingReaderThread|GC|SocketAcceptor|Thread|Index|FileLogWriter.FsyncThread|IncomingDirectorySweeper|mailboxd.csv|main|SyncGalGroup|%{WORD}
+
+ZIMBRA_MAILBOX  %{TIMESTAMP_ISO8601:zimbra_timestamp} %{DATA:zimbra_loglevel} \[%{ZIMBRA_COMPONENT:zimbra_component}(?:-%{NONNEGINT:zimbra_thread_number}(?::%{DATA:zimbra_soap_request})?)?\] \[%{DATA:zimbra_account}\] %{GREEDYDATA:zimbra_message}
+ZIMBRA_REMOTE  %{TIMESTAMP_ISO8601:zimbra_timestamp} %{DATA:zimbra_loglevel} \[{%{DATA:zimbra_component}: %{HOSTNAME:zimbra_hostname}->%{DATA:zimbra_mailaddress}:%{NONNEGINT:zimbra_port}}-%{GREEDYDATA:zimbra_status} \[%{DATA:zimbra_account}\] %{GREEDYDATA:zimbra_message}
+
+ZIMBRA_TRACE_ID        (?<zimbra_trace_log>^ExceptionId:.*)
+ZIMBRA_TRACE_CAUSED_BY (?<zimbra_trace_log>^Caused by:.*)
+ZIMBRA_TRACE_ERROR     (?<zimbra_trace_log>^.*Exception: .*)
+ZIMBRA_TRACE_NEST      (?<zimbra_trace_log>^.*nested exception is: .*)
+ZIMBRA_TRACE_CODE      (?<zimbra_trace_log>^Code:.*)
+ZIMBRA_TRACE_OTHERS    (?<zimbra_trace_log>^\s+at .*)
+ZIMBRA_TRACE_MORE      (?<zimbra_trace_log>^\s+... .* more)
+ZIMBRA_TRACE           %{ZIMBRA_TRACE_CAUSED_BY}|%{ZIMBRA_TRACE_ID}|%{ZIMBRA_TRACE_CODE}|%{ZIMBRA_TRACE_OTHERS}|%{ZIMBRA_TRACE_MORE}|%{ZIMBRA_TRACE_ERROR}|%{ZIMBRA_TRACE_NEST}
+
+ZIMBRA_MULTILINE       (?<zimbra_message>^bytesConsumed .*)
+
+###
+ZIMBRA_MAILBOX_LOG     %{ZIMBRA_MAILBOX}|%{ZIMBRA_REMOTE}|%{ZIMBRA_TRACE}|%{ZIMBRA_MULTILINE}

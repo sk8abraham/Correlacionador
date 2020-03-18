@@ -1,0 +1,6 @@
+NEXUSTIMESTAMP %{YEAR} %{MONTH} %{MONTHDAY} %{TIME}( %{TZ})?
+ISETIMESTAMP %{YEAR}-%{MONTHNUM}-%{MONTHDAY}[T ]%{HOUR}:?%{MINUTE}(?::?%{SECOND})? %{ISO8601_TIMEZONE}?
+CISCOTIMESTAMPTZ %{CISCOTIMESTAMP}( %{TZ})?
+CISCOTIMESTAMP %{MONTH} +%{MONTHDAY}(?: %{YEAR})? %{TIME}
+CISCO_REASON Duplicate TCP SYN|Failed to locate egress interface|Invalid transport field|No matching connection|DNS Response|DNS Query|(?:%{WORD}\s*)*
+
