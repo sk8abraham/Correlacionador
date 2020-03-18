@@ -60,13 +60,14 @@ filter {
 }
 
 output {
-
-  if([type] == "osseclogs") {
-    elasticsearch {
-      index => "ossec-%{+YYYY.MM.dd}"
-    }
+  elasticsearch { 
+	    hosts => ["https://172.16.100.1:9200","https://172.16.100.2:9200","https://172.16.100.5:9200"]
+            ssl => true
+            cacert => "/etc/logstash/ca.pem"
+            user => "elastic"
+            password => "elastic"
+            index => "ossec-%{+YYYY.MM.dd}"
   }
-}
 ```
-Referencias:
+## Referencias:  
 https://www.ossec.net/docs/cookbooks/recipes/elasticstack.html
