@@ -9,7 +9,7 @@ Para poder realizar las alertas se realizó un script que es ejecutado por el se
 La configuración de crontab se muestra a continuación:
 
 ```
-* * * * *
+* * * * * cd /home/belk/linea_base_elk/alerts/ && /home/belk/linea_base_elk/alerts/alerts.py
 ```
 
 ## Archivos Externos al Script
@@ -21,7 +21,11 @@ El script tabaja con diversos archivos a la vez para poder llevar control de las
 Este archivo es el encargado de controlar cuanto tiempo (en minutos) se debe dejar de enviar una alerta despúes de que esta haya sido exitosa, esto con el proposito de evitar el envio masivo de alertas, es decir una vez que una alerta fue enviada se entiende que esta ya ha notificado al administrador del sistema entonces no es necesario estar enviando la alerta cada minuto que pasa si no que se define un tiempo (throttle_period) que es lo suficientemente grande como para que el administrador tome accion sobre la alerta una vez que se vence dicho tiempo la alerta sera enviada nuevamente. Un ejemplo de este archivo luce de la siguiente manera:
 
 ```
-insert throttle_period
+{
+  "windows_iis_basic_auth_bruteforce": 2,
+  "windows_login_admin_logins": 1,
+  "windows_login_on_authorized_computer": 1
+}
 ```
 
 ### `credentials.json`
@@ -29,7 +33,12 @@ insert throttle_period
 En este archivo se encuentran las contraseñas del cluster de elasticsearch, la url del canal de slack y el email al cual se estan enviando las alertas hard coded, esto con el objetivo de que no se encuentren a simple vista en el script principal ya que no es una buena practica de programacíon y ademas si por alguna razón se encuentra la url del canal de slack hard coded y se realiza un push a un repositorio publico el canal se invalida automáticamente. El archivo luce de la siguiente manera:
 
 ```
-
+{
+  "slack_url" : "https://hooks.slack.com/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "elastic_user" : "user",
+  "elastic_password" : "password",
+  "mail" : "mail@mail.com"
+}
 ```
 
 ### `alerts.log`
@@ -37,7 +46,18 @@ En este archivo se encuentran las contraseñas del cluster de elasticsearch, la 
 Es el archivo bitácora del programa, en el podemos encontrar información util sobre que es lo que esta pasando con el script, ya que este va a estar siendo ejecutado por un crontab no podemos ver errores o información de debugeo del programa en la salida estandar por eso la necesidad de ver dicha informacion en el log. El archivo luce de la siguente manera:
 
 ```
-
+2020-03-17T03:31:01-06:00, Ready to execute:: windows_login_on_authorized_computer throttle_period:: 1
+2020-03-17T03:31:01-06:00,
+	Name: windows_login_on_authorized_computer.json
+	Index: winlogbeat*
+	Active: True
+	Status-Code: 200
+	Match: False
+	Message: 
+	Response: {'took': 2, 'timed_out': False, '_shards': {'total': 2, 'successful': 2, 'skipped': 0, 'failed': 0}, ...
+2020-03-17T03:31:01-06:00,Info,Alerta no enviada a Slack. La alerta no esta activada,windows_iis_basic_auth_bruteforce,3
+2020-03-17T03:31:01-06:00,Info,Alerta no enviada a Slack. La alerta no esta activada,windows_login_admin_logins,1
+2020-03-17T03:31:01-06:00,Info,Alerta no enviada a Slack. No se cumplieron las condiciones de la busqueda,windows_login_on_authorized_computer,2
 ```
 
 ### `Funcionamiento General del Script`
