@@ -55,4 +55,4 @@ La plantilla que hicimos fue para modificar el nombre del campo de la dirección
   }
 ```
 # Referencias  
-elastic.co/guide/en/elasticsearch/reference/master/indices-templates.html
+https://www.elastic.co/guide/en/elasticsearch/reference/master/indices-templates.html
