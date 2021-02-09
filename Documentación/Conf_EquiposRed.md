@@ -2,7 +2,7 @@
 #### Cisco
 Ejemplo de topografia.
 
-![Selection_002_23_06.jpg](https://www.gns3.com/api/v2/assets/photo/5b2e6d67f0c61a128add5194/Selection_002_23_06.jpg)
+https://github.com/sk8abraham/linea_base_elk/blob/master/Documentaci%C3%B3n/attachments/7d502365.png?raw=true
 
 #### Configuración Router Cisco
 ```
